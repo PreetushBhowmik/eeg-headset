@@ -58,17 +58,20 @@ async def upload(file: UploadFile = File(...)):
 
     if score <= 0.33:
         level = "LOW"
+        GPIO.output(PIN, GPIO.HIGH)   # OFF
+
     elif score <= 0.66:
         level = "MEDIUM"
+        GPIO.output(PIN, GPIO.HIGH)   # OFF
+
     else:
         level = "HIGH"
-        GPIO.output(PIN, GPIO.LOW)  # Trigger piezo
+        GPIO.output(PIN, GPIO.LOW)    # ON (active LOW buzzer)
 
     return {
         "score": float(score),
         "level": level
     }
-
 # ---------------- OPTIONAL APIs ----------------
 @app.get("/piezo/on")
 def piezo_on():
