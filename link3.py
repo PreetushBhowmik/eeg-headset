@@ -50,111 +50,85 @@ def trigger_piezo_async():
     threading.Thread(target=trigger_piezo).start()
 
 # ---------------- WEB UI ----------------
-
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
     <html>
     <head>
-        <title>Stress Detection Dashboard</title>
+        <title>Stress Detection</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #1e3c72, #2a5298);
-                color: white;
+                font-family: Arial;
                 text-align: center;
                 padding: 50px;
+                background: #111;
+                color: white;
             }
 
-            .container {
-                background: rgba(255,255,255,0.1);
+            .box {
+                background: #222;
                 padding: 30px;
-                border-radius: 15px;
-                width: 400px;
-                margin: auto;
-                box-shadow: 0px 10px 25px rgba(0,0,0,0.3);
-            }
-
-            h2 {
-                margin-bottom: 20px;
-            }
-
-            input[type="file"] {
-                margin: 15px 0;
+                border-radius: 10px;
+                display: inline-block;
             }
 
             button {
+                margin-top: 10px;
                 padding: 10px 20px;
+                border-radius: 5px;
                 border: none;
-                border-radius: 8px;
                 background: #00c6ff;
                 color: white;
-                font-size: 16px;
                 cursor: pointer;
-                transition: 0.3s;
             }
 
-            button:hover {
-                background: #0072ff;
-            }
-
-            .result {
+            #result {
                 margin-top: 20px;
-                padding: 15px;
-                border-radius: 10px;
-                font-size: 18px;
+                font-size: 30px;
             }
-
-            .low { background: #2ecc71; }
-            .medium { background: #f1c40f; }
-            .high { background: #e74c3c; }
         </style>
     </head>
 
     <body>
-        <div class="container">
-            <h2>Stress Detection System</h2>
+        <div class="box">
+            <h2>Upload CSV</h2>
 
             <form id="uploadForm">
                 <input type="file" name="file" required><br>
-                <button type="submit">Upload CSV</button>
+                <button type="submit">Upload</button>
             </form>
 
-            <div id="result" class="result" style="display:none;"></div>
+            <div id="result"></div>
         </div>
 
-       <script>
-    const form = document.getElementById("uploadForm");
-    const resultDiv = document.getElementById("result");
+        <script>
+            const form = document.getElementById("uploadForm");
+            const resultDiv = document.getElementById("result");
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
 
-        const formData = new FormData(form);
+                const formData = new FormData(form);
 
-        const response = await fetch("/upload", {
-            method: "POST",
-            body: formData
-        });
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
 
-        const data = await response.json();
+                const data = await response.json();
 
-        resultDiv.style.display = "block";
+                console.log(data); // DEBUG
 
-        resultDiv.className = "result"; // remove color classes
-
-        resultDiv.innerHTML = `
-            <h3>Stress Score</h3>
-            <div style="font-size: 32px; font-weight: bold;">
-                ${data.score.toFixed(3)}
-            </div>
-        `;
-    });
-</script>
+                if (data.score !== undefined) {
+                    resultDiv.innerHTML = "Stress Score: " + data.score.toFixed(3);
+                } else {
+                    resultDiv.innerHTML = "Error: " + JSON.stringify(data);
+                }
+            });
+        </script>
     </body>
     </html>
     """
-
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
