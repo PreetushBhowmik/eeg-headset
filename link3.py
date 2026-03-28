@@ -141,12 +141,7 @@ def home():
 
         resultDiv.style.display = "block";
 
-        let color = "";
-        if (data.score <= 0.33) color = "low";
-        else if (data.score <= 0.66) color = "medium";
-        else color = "high";
-
-        resultDiv.className = "result " + color;
+        resultDiv.className = "result"; // remove color classes
 
         resultDiv.innerHTML = `
             <h3>Stress Score</h3>
