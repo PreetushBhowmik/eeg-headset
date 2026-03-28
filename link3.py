@@ -123,37 +123,39 @@ def home():
             <div id="result" class="result" style="display:none;"></div>
         </div>
 
-        <script>
-            const form = document.getElementById("uploadForm");
-            const resultDiv = document.getElementById("result");
+       <script>
+    const form = document.getElementById("uploadForm");
+    const resultDiv = document.getElementById("result");
 
-            form.addEventListener("submit", async (e) => {
-                e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-                const formData = new FormData(form);
+        const formData = new FormData(form);
 
-                const response = await fetch("/upload", {
-                    method: "POST",
-                    body: formData
-                });
+        const response = await fetch("/upload", {
+            method: "POST",
+            body: formData
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                resultDiv.style.display = "block";
+        resultDiv.style.display = "block";
 
-                let levelClass = "";
-                if (data.level === "LOW") levelClass = "low";
-                else if (data.level === "MEDIUM") levelClass = "medium";
-                else levelClass = "high";
+        let color = "";
+        if (data.score <= 0.33) color = "low";
+        else if (data.score <= 0.66) color = "medium";
+        else color = "high";
 
-                resultDiv.className = "result " + levelClass;
+        resultDiv.className = "result " + color;
 
-                resultDiv.innerHTML = `
-                    <b>Stress Score:</b> ${data.score.toFixed(3)} <br>
-                    <b>Level:</b> ${data.level}
-                `;
-            });
-        </script>
+        resultDiv.innerHTML = `
+            <h3>Stress Score</h3>
+            <div style="font-size: 32px; font-weight: bold;">
+                ${data.score.toFixed(3)}
+            </div>
+        `;
+    });
+</script>
     </body>
     </html>
     """
