@@ -7,19 +7,22 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(PIN, GPIO.OUT)
 
+# VERY IMPORTANT: Start OFF
+GPIO.output(PIN, GPIO.HIGH)
+
 print("Starting test...")
 
 try:
     while True:
-        print("ON")
-        GPIO.output(PIN, GPIO.LOW)   # 🔊 ON
+        print("FORCE ON")
+        GPIO.output(PIN, GPIO.LOW)   # 🔊 FORCE ON
         time.sleep(7)
 
-        print("OFF")
+        print("FORCE OFF")
         GPIO.output(PIN, GPIO.HIGH)  # ❌ OFF
         time.sleep(7)
 
 except KeyboardInterrupt:
-    print("Stopped")
+    print("Stopping...")
     GPIO.output(PIN, GPIO.HIGH)  # ensure OFF
     GPIO.cleanup()
