@@ -50,22 +50,99 @@ def trigger_piezo_async():
     threading.Thread(target=trigger_piezo).start()
 
 # ---------------- WEB UI ----------------
+
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
-    <html>
-        <head>
-            <title>Stress Detection</title>
-        </head>
-        <body>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Stress Detection</title>
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f5f7fa;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .container {
+                background: #ffffff;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+                text-align: center;
+                width: 350px;
+            }
+
+            h2 {
+                margin-bottom: 20px;
+                color: #333;
+                font-weight: 600;
+            }
+
+            input[type="file"] {
+                margin-bottom: 20px;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                width: 100%;
+                background-color: #fafafa;
+                cursor: pointer;
+            }
+
+            button {
+                background-color: #4a90e2;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                background-color: #357abd;
+            }
+
+            button:active {
+                transform: scale(0.98);
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
             <h2>Upload CSV File</h2>
             <form action="/upload" method="post" enctype="multipart/form-data">
                 <input type="file" name="file" required>
+                <br>
                 <button type="submit">Upload</button>
             </form>
-        </body>
+        </div>
+    </body>
     </html>
     """
+
+
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
+    content = await file.read()
+
+    # For now, just confirm upload
+    return {"filename": file.filename, "message": "File uploaded successfully"}
 
 # ---------------- FILE UPLOAD ----------------
 @app.post("/upload")
