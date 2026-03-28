@@ -54,84 +54,106 @@ def trigger_piezo_async():
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
-    <!DOCTYPE html>
-    <html lang="en">
+    <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Stress Detection</title>
-
+        <title>Stress Detection Dashboard</title>
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
             body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: #f5f7fa;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
+                font-family: Arial, sans-serif;
+                background: linear-gradient(135deg, #1e3c72, #2a5298);
+                color: white;
+                text-align: center;
+                padding: 50px;
             }
 
             .container {
-                background: #ffffff;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-                text-align: center;
-                width: 350px;
+                background: rgba(255,255,255,0.1);
+                padding: 30px;
+                border-radius: 15px;
+                width: 400px;
+                margin: auto;
+                box-shadow: 0px 10px 25px rgba(0,0,0,0.3);
             }
 
             h2 {
                 margin-bottom: 20px;
-                color: #333;
-                font-weight: 600;
             }
 
             input[type="file"] {
-                margin-bottom: 20px;
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                width: 100%;
-                background-color: #fafafa;
-                cursor: pointer;
+                margin: 15px 0;
             }
 
             button {
-                background-color: #4a90e2;
-                color: white;
-                border: none;
                 padding: 10px 20px;
-                border-radius: 6px;
-                font-size: 14px;
+                border: none;
+                border-radius: 8px;
+                background: #00c6ff;
+                color: white;
+                font-size: 16px;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: 0.3s;
             }
 
             button:hover {
-                background-color: #357abd;
+                background: #0072ff;
             }
 
-            button:active {
-                transform: scale(0.98);
+            .result {
+                margin-top: 20px;
+                padding: 15px;
+                border-radius: 10px;
+                font-size: 18px;
             }
+
+            .low { background: #2ecc71; }
+            .medium { background: #f1c40f; }
+            .high { background: #e74c3c; }
         </style>
     </head>
 
     <body>
         <div class="container">
-            <h2>Upload CSV File</h2>
-            <form action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" required>
-                <br>
-                <button type="submit">Upload</button>
+            <h2>Stress Detection System</h2>
+
+            <form id="uploadForm">
+                <input type="file" name="file" required><br>
+                <button type="submit">Upload CSV</button>
             </form>
+
+            <div id="result" class="result" style="display:none;"></div>
         </div>
+
+        <script>
+            const form = document.getElementById("uploadForm");
+            const resultDiv = document.getElementById("result");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                resultDiv.style.display = "block";
+
+                let levelClass = "";
+                if (data.level === "LOW") levelClass = "low";
+                else if (data.level === "MEDIUM") levelClass = "medium";
+                else levelClass = "high";
+
+                resultDiv.className = "result " + levelClass;
+
+                resultDiv.innerHTML = `
+                    <b>Stress Score:</b> ${data.score.toFixed(3)} <br>
+                    <b>Level:</b> ${data.level}
+                `;
+            });
+        </script>
     </body>
     </html>
     """
