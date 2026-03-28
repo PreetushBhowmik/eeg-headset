@@ -11,11 +11,11 @@ import os
 app = FastAPI()
 
 # ---------------- GPIO SETUP ----------------
-PIN = 17
+PIN = 18  # use stable pin
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(PIN, GPIO.OUT)
-GPIO.output(PIN, GPIO.HIGH)  # OFF initially
+GPIO.output(PIN, GPIO.LOW)  # OFF initially
 
 # ---------------- LOAD MODEL ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,16 +38,16 @@ def predict_stress_df(df):
     features = scaler.transform(features)
     return model.predict_proba(features)[0][1]
 
-# ---------------- PIEZO (YOUR LOGIC) ----------------
-def trigger_piezo():
-    print("🚨 HIGH STRESS DETECTED → Activating Piezo")
+# ---------------- RELAY CONTROL ----------------
+def trigger_relay():
+    print("🚨 HIGH STRESS → RELAY ON")
 
-    GPIO.output(PIN, GPIO.LOW)   # ON
+    GPIO.output(PIN, GPIO.HIGH)  # ON
     time.sleep(5)
-    GPIO.output(PIN, GPIO.HIGH)  # OFF
+    GPIO.output(PIN, GPIO.LOW)   # OFF
 
-def trigger_piezo_async():
-    threading.Thread(target=trigger_piezo).start()
+def trigger_relay_async():
+    threading.Thread(target=trigger_relay, daemon=True).start()
 
 # ---------------- WEB UI ----------------
 @app.get("/", response_class=HTMLResponse)
@@ -59,32 +59,40 @@ def home():
         <style>
             body {
                 font-family: Arial;
-                text-align: center;
-                padding: 50px;
                 background: #111;
                 color: white;
+                text-align: center;
+                padding-top: 100px;
             }
 
             .box {
                 background: #222;
                 padding: 30px;
-                border-radius: 10px;
+                border-radius: 15px;
                 display: inline-block;
+                box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
             }
 
             button {
-                margin-top: 10px;
                 padding: 10px 20px;
-                border-radius: 5px;
+                margin-top: 15px;
                 border: none;
+                border-radius: 8px;
                 background: #00c6ff;
                 color: white;
                 cursor: pointer;
+                font-size: 16px;
+            }
+
+            button:hover {
+                background: #0072ff;
             }
 
             #result {
                 margin-top: 20px;
-                font-size: 30px;
+                font-size: 32px;
+                font-weight: bold;
+                color: #00ffcc;
             }
         </style>
     </head>
@@ -117,10 +125,10 @@ def home():
 
                 const data = await response.json();
 
-                console.log(data); // DEBUG
+                console.log(data);
 
                 if (data.score !== undefined) {
-                    resultDiv.innerHTML = "Stress Score: " + data.score.toFixed(3);
+                    resultDiv.innerHTML = data.score.toFixed(3);
                 } else {
                     resultDiv.innerHTML = "Error: " + JSON.stringify(data);
                 }
@@ -130,13 +138,6 @@ def home():
     </html>
     """
 
-@app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    content = await file.read()
-
-    # For now, just confirm upload
-    return {"filename": file.filename, "message": "File uploaded successfully"}
-
 # ---------------- FILE UPLOAD ----------------
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
@@ -144,9 +145,10 @@ async def upload(file: UploadFile = File(...)):
         df = pd.read_csv(file.file)
 
         score = predict_stress_df(df)
+        print(f"Stress Score: {score:.3f}")
 
         if score > 0.66:
-            trigger_piezo_async()
+            trigger_relay_async()
 
         return {
             "score": float(score)
