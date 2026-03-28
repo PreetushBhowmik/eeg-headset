@@ -7,16 +7,18 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(PIN, GPIO.OUT)
 
-print("Testing piezo...")
+print("Starting 7s ON / 7s OFF loop...")
 
-# Turn ON
-print("ON")
-GPIO.output(PIN, GPIO.LOW)   # Try LOW first
-time.sleep(3)
+try:
+    while True:
+        print("ON")
+        GPIO.output(PIN, GPIO.LOW)   # ON (most modules are active LOW)
+        time.sleep(7)
 
-# Turn OFF
-print("OFF")
-GPIO.output(PIN, GPIO.HIGH)
-time.sleep(2)
+        print("OFF")
+        GPIO.output(PIN, GPIO.HIGH)  # OFF
+        time.sleep(7)
 
-GPIO.cleanup()
+except KeyboardInterrupt:
+    print("Stopped")
+    GPIO.cleanup()
