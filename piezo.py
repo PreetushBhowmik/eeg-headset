@@ -1,28 +1,28 @@
 import RPi.GPIO as GPIO
 import time
 
-PIN = 17
+PIN = 18   # change if using different pin
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(PIN, GPIO.OUT)
 
-# VERY IMPORTANT: Start OFF
-GPIO.output(PIN, GPIO.HIGH)
+# IMPORTANT: Start with relay OFF
+GPIO.output(PIN, GPIO.LOW)
 
-print("Starting test...")
+print("Starting relay + piezo test...")
 
 try:
     while True:
-        print("FORCE ON")
-        GPIO.output(PIN, GPIO.LOW)   # 🔊 FORCE ON
-        time.sleep(7)
+        print("🔊 ON (Relay ON → Piezo ON)")
+        GPIO.output(PIN, GPIO.HIGH)   # Relay ON
+        time.sleep(5)
 
-        print("FORCE OFF")
-        GPIO.output(PIN, GPIO.HIGH)  # ❌ OFF
-        time.sleep(7)
+        print("❌ OFF (Relay OFF → Piezo OFF)")
+        GPIO.output(PIN, GPIO.LOW)    # Relay OFF
+        time.sleep(5)
 
 except KeyboardInterrupt:
-    print("Stopping...")
-    GPIO.output(PIN, GPIO.HIGH)  # ensure OFF
+    print("Stopping test...")
+    GPIO.output(PIN, GPIO.LOW)  # Ensure OFF
     GPIO.cleanup()
