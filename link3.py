@@ -59,59 +59,78 @@ def home():
         <style>
             body {
                 font-family: Arial;
-                background: #111;
+                background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
                 color: white;
                 text-align: center;
-                padding-top: 100px;
+                padding-top: 80px;
             }
 
             .box {
-                background: #222;
-                padding: 30px;
-                border-radius: 15px;
+                background: rgba(255,255,255,0.08);
+                padding: 40px;
+                border-radius: 20px;
                 display: inline-block;
-                box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
+                box-shadow: 0px 10px 40px rgba(0,0,0,0.6);
+                backdrop-filter: blur(10px);
+                width: 350px;
+            }
+
+            h2 {
+                margin-bottom: 20px;
             }
 
             button {
-                padding: 10px 20px;
+                padding: 12px 25px;
                 margin-top: 15px;
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
                 background: #00c6ff;
                 color: white;
                 cursor: pointer;
                 font-size: 16px;
+                transition: 0.3s;
             }
 
             button:hover {
                 background: #0072ff;
             }
 
-            #result {
-                margin-top: 20px;
-                font-size: 32px;
+            .score {
+                margin-top: 25px;
+                font-size: 42px;
                 font-weight: bold;
                 color: #00ffcc;
             }
+
+            .level {
+                font-size: 20px;
+                margin-top: 10px;
+                opacity: 0.9;
+            }
+
+            .low { color: #2ecc71; }
+            .medium { color: #f1c40f; }
+            .high { color: #e74c3c; }
         </style>
     </head>
 
     <body>
         <div class="box">
-            <h2>Upload CSV</h2>
+            <h2>Stress Detection</h2>
 
             <form id="uploadForm">
                 <input type="file" name="file" required><br>
                 <button type="submit">Upload</button>
             </form>
 
-            <div id="result"></div>
+            <div id="score" class="score"></div>
+            <div id="level" class="level"></div>
         </div>
 
         <script>
             const form = document.getElementById("uploadForm");
-            const resultDiv = document.getElementById("result");
+            const scoreDiv = document.getElementById("score");
+            const levelDiv = document.getElementById("level");
 
             form.addEventListener("submit", async (e) => {
                 e.preventDefault();
@@ -128,9 +147,14 @@ def home():
                 console.log(data);
 
                 if (data.score !== undefined) {
-                    resultDiv.innerHTML = data.score.toFixed(3);
+                    scoreDiv.innerHTML = data.score.toFixed(3);
+
+                    levelDiv.innerHTML = data.level;
+
+                    levelDiv.className = "level " + data.level.toLowerCase();
                 } else {
-                    resultDiv.innerHTML = "Error: " + JSON.stringify(data);
+                    scoreDiv.innerHTML = "Error";
+                    levelDiv.innerHTML = JSON.stringify(data);
                 }
             });
         </script>
@@ -145,13 +169,18 @@ async def upload(file: UploadFile = File(...)):
         df = pd.read_csv(file.file)
 
         score = predict_stress_df(df)
-        print(f"Stress Score: {score:.3f}")
 
-        if score > 0.66:
+        if score <= 0.33:
+            level = "LOW"
+        elif score <= 0.66:
+            level = "MEDIUM"
+        else:
+            level = "HIGH"
             trigger_relay_async()
 
         return {
-            "score": float(score)
+            "score": float(score),
+            "level": level
         }
 
     except Exception as e:
