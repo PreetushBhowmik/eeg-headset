@@ -175,21 +175,12 @@ async def upload(file: UploadFile = File(...)):
         df = pd.read_csv(file.file)
 
         score = predict_stress_df(df)
-        print(f"Stress Score: {score:.2f}")
 
-        if score <= 0.33:
-            level = "LOW"
-
-        elif score <= 0.66:
-            level = "MEDIUM"
-
-        else:
-            level = "HIGH"
-            trigger_piezo_async()  # 🔥 PIEZO TRIGGER
+        if score > 0.66:
+            trigger_piezo_async()
 
         return {
-            "score": float(score),
-            "level": level
+            "score": float(score)
         }
 
     except Exception as e:
